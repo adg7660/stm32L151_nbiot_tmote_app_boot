@@ -426,6 +426,28 @@ void tcfg_SetSubSN(uint32_t subsn)
 	return;
 }
 
+
+uint32_t tcfg_GetUpgradeBaseAddr(void)
+{
+	return TFLASH_ReadWord(EEPROM_CONFIG_OFFSET + TCFG_UPGRADE_BASEADDR_OFFSET);
+}
+
+uint16_t tcfg_GetUpgradeBlockNum(void)
+{
+	return TFLASH_ReadHalfWord(EEPROM_CONFIG_OFFSET + TCFG_UPGRADE_BLOCKNUM_OFFSET);
+}
+
+uint16_t tcfg_GetUpgradeBlockLen(void)
+{
+	return TFLASH_ReadHalfWord(EEPROM_CONFIG_OFFSET + TCFG_UPGRADE_BLOCKLEN_OFFSET);
+}
+
+uint16_t tcfg_GetUpgradeDataLen(void)
+{
+	return TFLASH_ReadHalfWord(EEPROM_CONFIG_OFFSET + TCFG_UPGRADE_DATALEN_OFFSET);
+}
+
+
 uint8_t tcfg_ReadRfChannel(void)
 {
 	return TFLASH_ReadWord(EEPROM_CONFIG_OFFSET + TCFG_RFCHANNEL_OFFSET);

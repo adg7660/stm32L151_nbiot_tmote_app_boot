@@ -251,28 +251,35 @@ int Fifo_free(struct UpdateFIFO *fifo)
 
 #define SPIFLASH_ONCE_READLEN				512
 #define SPIFLASH_ONEC_READLEN_EFFECTIVE		500
+#define SPIFLASH_BLOCK_NUM				150
 #define STMFLASH_ONCE_WRITELEN			128
 
 #define UPDATE_BUFFER_LEN				2048
+#define UPDATE_STACK_BUFFER_LEN			1024
 
 struct UpdateFIFO	UpdateFifoStruct;
-unsigned char UpdateFifoBuffer[UPDATE_BUFFER_LEN];
-unsigned char UpdateSPIFlashRead[SPIFLASH_ONEC_READLEN_EFFECTIVE];
-unsigned char UpdateSTMFlashWrite[STMFLASH_ONCE_WRITELEN];
+__IO unsigned char UpdateFifoBuffer[UPDATE_BUFFER_LEN];
+__IO unsigned char UpdateSPIFlashRead[UPDATE_STACK_BUFFER_LEN];
+__IO unsigned char UpdateSTMFlashWrite[UPDATE_STACK_BUFFER_LEN];
 
-u32 SpiFlashblockIndex = 0;
-u32 StmFlashblockIndex = 0;
-u32 SpiFlashBlockAll = 0;
-u32 FifoRemainderLen = 0;
+__IO u32 SpiFlashblockIndex = 0;
+__IO u32 StmFlashblockIndex = 0;
+__IO u32 SpiFlashBlockAll = 0;
+__IO u32 FifoRemainderLen = 0;
+
+__IO uint32_t UpgradeSpiFlashBaseAddr = GD25Q80_BASE_ADDR;
+__IO uint16_t UpgradeBlockNum = SPIFLASH_BLOCK_NUM;
+__IO uint16_t UpgradeBlockLen = SPIFLASH_ONCE_READLEN;
+__IO uint16_t UpgradeDataLen = SPIFLASH_ONEC_READLEN_EFFECTIVE;
 
 unsigned char SpiFlashUpgradeString[25] = "SPI FLASH Upgrade : ---%";
 
 void programUpdateSpiFlashPrint(void)
 {
 #if 1
-	SpiFlashUpgradeString[20] = 0x30 + (StmFlashblockIndex*STMFLASH_ONCE_WRITELEN*100)/(SpiFlashBlockAll*SPIFLASH_ONEC_READLEN_EFFECTIVE)/100;
-	SpiFlashUpgradeString[21] = 0x30 + (StmFlashblockIndex*STMFLASH_ONCE_WRITELEN*100)/(SpiFlashBlockAll*SPIFLASH_ONEC_READLEN_EFFECTIVE)/10%10;
-	SpiFlashUpgradeString[22] = 0x30 + (StmFlashblockIndex*STMFLASH_ONCE_WRITELEN*100)/(SpiFlashBlockAll*SPIFLASH_ONEC_READLEN_EFFECTIVE)%10;
+	SpiFlashUpgradeString[20] = 0x30 + (StmFlashblockIndex*STMFLASH_ONCE_WRITELEN*100)/(SpiFlashBlockAll*UpgradeDataLen)/100;
+	SpiFlashUpgradeString[21] = 0x30 + (StmFlashblockIndex*STMFLASH_ONCE_WRITELEN*100)/(SpiFlashBlockAll*UpgradeDataLen)/10%10;
+	SpiFlashUpgradeString[22] = 0x30 + (StmFlashblockIndex*STMFLASH_ONCE_WRITELEN*100)/(SpiFlashBlockAll*UpgradeDataLen)%10;
 	trf_do_rfpintf((char*)SpiFlashUpgradeString);
 #endif
 }
@@ -287,21 +294,21 @@ void programUpdateSpiFlash(u32 SpiReadAddr, u32 StmWriteAddr, u32 SpiFlashBlock)
 	GD25Q_SPIFLASH_Init();
 	GD25Q_SPIFLASH_ReadDeviceID();
 	
-	Fifo_init(&UpdateFifoStruct, sizeof(UpdateFifoBuffer), UpdateFifoBuffer);
+	Fifo_init(&UpdateFifoStruct, sizeof(UpdateFifoBuffer), (u8*)UpdateFifoBuffer);
 	
 	while ((SpiFlashBlock != 0) || (Fifo_status(&UpdateFifoStruct) >= STMFLASH_ONCE_WRITELEN)) {
 		
-		if ((SpiFlashBlock != 0) && (Fifo_free(&UpdateFifoStruct) >= SPIFLASH_ONEC_READLEN_EFFECTIVE)) {
+		if ((SpiFlashBlock != 0) && (Fifo_free(&UpdateFifoStruct) >= UpgradeDataLen)) {
 			GD25Q_SPIFLASH_Init();
-			GD25Q_SPIFLASH_ReadBuffer(UpdateSPIFlashRead, SpiReadAddr + (SpiFlashblockIndex * SPIFLASH_ONCE_READLEN), SPIFLASH_ONEC_READLEN_EFFECTIVE);
+			GD25Q_SPIFLASH_ReadBuffer((u8*)UpdateSPIFlashRead, SpiReadAddr + (SpiFlashblockIndex * UpgradeBlockLen), UpgradeDataLen);
 			SpiFlashblockIndex++;
 			SpiFlashBlock--;
-			Fifo_WriteBuffer(&UpdateFifoStruct, UpdateSPIFlashRead, SPIFLASH_ONEC_READLEN_EFFECTIVE);
+			Fifo_WriteBuffer(&UpdateFifoStruct, (u8*)UpdateSPIFlashRead, UpgradeDataLen);
 		}
 		
 		if (Fifo_status(&UpdateFifoStruct) >= STMFLASH_ONCE_WRITELEN) {
-			Fifo_ReadBuffer(&UpdateFifoStruct, UpdateSTMFlashWrite, STMFLASH_ONCE_WRITELEN);
-			xm_iap_program(APP_LOWEST_ADDRESS, StmFlashblockIndex * STMFLASH_ONCE_WRITELEN, STMFLASH_ONCE_WRITELEN, UpdateSTMFlashWrite);
+			Fifo_ReadBuffer(&UpdateFifoStruct, (u8*)UpdateSTMFlashWrite, STMFLASH_ONCE_WRITELEN);
+			xm_iap_program(APP_LOWEST_ADDRESS, StmFlashblockIndex * STMFLASH_ONCE_WRITELEN, STMFLASH_ONCE_WRITELEN, (u8*)UpdateSTMFlashWrite);
 			StmFlashblockIndex++;
 			
 			programUpdateSpiFlashPrint();
@@ -312,12 +319,12 @@ void programUpdateSpiFlash(u32 SpiReadAddr, u32 StmWriteAddr, u32 SpiFlashBlock)
 	
 	FifoRemainderLen = Fifo_status(&UpdateFifoStruct);
 	if (Fifo_status(&UpdateFifoStruct) > 0) {
-		Fifo_ReadBuffer(&UpdateFifoStruct, UpdateSTMFlashWrite, FifoRemainderLen);
+		Fifo_ReadBuffer(&UpdateFifoStruct, (u8*)UpdateSTMFlashWrite, FifoRemainderLen);
 		for (int i = FifoRemainderLen; i < STMFLASH_ONCE_WRITELEN; i++) {
 			UpdateSTMFlashWrite[i] = 0xFF;
 		}
 		
-		xm_iap_program(APP_LOWEST_ADDRESS, StmFlashblockIndex * STMFLASH_ONCE_WRITELEN, STMFLASH_ONCE_WRITELEN, UpdateSTMFlashWrite);
+		xm_iap_program(APP_LOWEST_ADDRESS, StmFlashblockIndex * STMFLASH_ONCE_WRITELEN, STMFLASH_ONCE_WRITELEN, (u8*)UpdateSTMFlashWrite);
 		StmFlashblockIndex++;
 		
 		programUpdateSpiFlashPrint();
@@ -374,6 +381,8 @@ int main(void)
 		g_bootmode = TCFG_ENV_BOOTMODE_TOUPDATE;
 	else if(i == TCFG_ENV_BOOTMODE_UPDATING)
 		g_bootmode = TCFG_ENV_BOOTMODE_UPDATING;
+	else if (i == TCFG_ENV_BOOTMODE_SPIFLASH_UPGRADE)
+		g_bootmode = TCFG_ENV_BOOTMODE_SPIFLASH_UPGRADE;
 	else
 		g_bootmode = TCFG_ENV_BOOTMODE_NORMAL;
 	i = tcfg_GetBootCount();
@@ -411,13 +420,28 @@ int main(void)
 	DeBugMain();
 #endif
 	
+#ifdef	DEVICE_DEBUG
+	GD25Q_SPIFLASH_Init();
+	GD25Q_SPIFLASH_ReadDeviceID();
+	GD25Q_SPIFLASH_EraseChip();
+	trf_do_rfpintf("EraseChip");
+	for (int i = 0; i < 150; i++) {
+		GD25Q_SPIFLASH_Init();
+		STMFLASH_ReadBuffer(APP_LOWEST_ADDRESS + i * 500, (u8*)UpdateFifoBuffer, 500);
+		GD25Q_SPIFLASH_WriteBuffer((u8*)UpdateFifoBuffer, GD25Q80_PAGE_ADDRESS(0) + i * 512, 500);
+		Delay_MS(1);
+		IWDG_Feed();
+		trf_do_rfpintf(".");
+	}
+#endif
+	
+//	g_bootmode = TCFG_ENV_BOOTMODE_SPIFLASH_UPGRADE;
+	
 	if(g_bootmode == TCFG_ENV_BOOTMODE_NORMAL)
 		goto start;
 	
-	
-	
-	
-	
+	if (g_bootmode == TCFG_ENV_BOOTMODE_SPIFLASH_UPGRADE)
+		goto start;
 	
 	if(TRF_OK != tmesh_rf_get_status()){
 		g_bootmode = TCFG_ENV_BOOTMODE_NORMAL;
@@ -601,6 +625,17 @@ start:
 
 			}
 		}
+		else if (g_bootmode == TCFG_ENV_BOOTMODE_SPIFLASH_UPGRADE)
+		{
+			UpgradeSpiFlashBaseAddr = tcfg_GetUpgradeBaseAddr();							//SPI Flash App Base Address
+			UpgradeBlockNum = tcfg_GetUpgradeBlockNum();									//SPI Flash App Block Num
+			UpgradeBlockLen = tcfg_GetUpgradeBlockLen();									//SPI Flash Block Length
+			UpgradeDataLen = tcfg_GetUpgradeDataLen();									//SPI Flash Block Effective Data Length
+			
+			programUpdateSpiFlash(UpgradeSpiFlashBaseAddr, app_offset, UpgradeBlockNum);
+			
+			x_jump_to_application(app_offset);
+		}
 		else
 		{
 			x_jump_to_application(app_offset);
@@ -635,10 +670,14 @@ void DeBugMain(void)
 //	GD25Q_SPIFLASH_Init();
 //	GD25Q_SPIFLASH_ReadDeviceID();
 //	GD25Q_SPIFLASH_EraseChip();
+//	trf_do_rfpintf("EraseChip");
 //	for (int i = 0; i < 144; i++) {
-//		STMFLASH_ReadBuffer(APP_LOWEST_ADDRESS + i * 500, STMReadBuff, 500);
-//		GD25Q_SPIFLASH_WriteBuffer(STMReadBuff, GD25Q80_PAGE_ADDRESS(0) + i * 512, 500);
+//		GD25Q_SPIFLASH_Init();
+//		STMFLASH_ReadBuffer(APP_LOWEST_ADDRESS + i * 500, (u8*)UpdateFifoBuffer, 500);
+//		GD25Q_SPIFLASH_WriteBuffer((u8*)UpdateFifoBuffer, GD25Q80_PAGE_ADDRESS(0) + i * 512, 500);
 //		Delay_MS(1);
+//		IWDG_Feed();
+//		trf_do_rfpintf(".");
 //	}
 	
 	
@@ -662,7 +701,7 @@ void DeBugMain(void)
 	
 	
 	
-	programUpdateSpiFlash(GD25Q80_PAGE_ADDRESS(0), APP_LOWEST_ADDRESS, 144);
+//	programUpdateSpiFlash(GD25Q80_PAGE_ADDRESS(0), APP_LOWEST_ADDRESS, 144);
 	
 	x_jump_to_application(app_offset);
 	

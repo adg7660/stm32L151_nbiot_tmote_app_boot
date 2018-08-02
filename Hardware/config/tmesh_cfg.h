@@ -84,6 +84,39 @@
 #define TCFG_RFCHANNEL_OFFSET		TCFG_STATUSCNT_OFFSET+TCFG_STATUSCNT_LENGTH
 #define TCFG_RFCHANNEL_LENGTH		1
 
+
+
+/************************************** The environment parameters are used both by extend ***************************************/
+#define EEPROM_CONFIG_PAGE2_ADDRESS		0x08080E00
+#define EEPROM_CONFIG_PAGE2_SIZE			0x0200
+#define TCFG_EEPROM_CONFIG_PAGE2_OFFSET		0x0E00
+
+#define TCFG_COAP_SENTCNT_OFFSET			TCFG_EEPROM_CONFIG_PAGE2_OFFSET						//0x08080E00
+#define TCFG_COAP_SENTCNT_LENGTH			4												//CoapSentCnt
+#define TCFG_COAP_RECVCNT_OFFSET			TCFG_COAP_SENTCNT_OFFSET + TCFG_COAP_SENTCNT_LENGTH		//0x08080E04
+#define TCFG_COAP_RECVCNT_LENGTH			4												//CoapRecvCnt
+#define TCFG_MQTTSN_SENTCNT_OFFSET			TCFG_COAP_RECVCNT_OFFSET + TCFG_COAP_RECVCNT_LENGTH		//0x08080E08
+#define TCFG_MQTTSN_SENTCNT_LENGTH			4												//MqttSentCnt
+#define TCFG_MQTTSN_RECVCNT_OFFSET			TCFG_MQTTSN_SENTCNT_OFFSET + TCFG_MQTTSN_SENTCNT_LENGTH	//0x08080E0C
+#define TCFG_MQTTSN_RECVCNT_LENGTH			4												//MqttRecvCnt
+
+#define TCFG_RF_DPRINT_LV_OFFSET			TCFG_MQTTSN_RECVCNT_OFFSET + TCFG_MQTTSN_RECVCNT_LENGTH	//0x08080E10
+#define TCFG_RF_DPRINT_LV_LENGTH			1												//RFDPrintLv
+#define TCFG_COAP_RA_TIME_OFFSET			TCFG_RF_DPRINT_LV_OFFSET + TCFG_RF_DPRINT_LV_LENGTH		//0x08080E11
+#define TCFG_COAP_RA_TIME_LENGTH			1												//CoapRATime
+
+#define TCFG_UPGRADE_BASEADDR_OFFSET		TCFG_COAP_RA_TIME_OFFSET + TCFG_COAP_RA_TIME_LENGTH		//0x08080E12
+#define TCFG_UPGRADE_BASEADDR_LENGTH		4												//UpgradeSpiFlashBaseAdde
+#define TCFG_UPGRADE_BLOCKNUM_OFFSET		TCFG_UPGRADE_BASEADDR_OFFSET + TCFG_UPGRADE_BASEADDR_LENGTH	//0x08080E16
+#define TCFG_UPGRADE_BLOCKNUM_LENGTH		2												//UpgradeSpiFlashBlockNum
+#define TCFG_UPGRADE_BLOCKLEN_OFFSET		TCFG_UPGRADE_BLOCKNUM_OFFSET + TCFG_UPGRADE_BLOCKNUM_LENGTH	//0x08080E18
+#define TCFG_UPGRADE_BLOCKLEN_LENGTH		2												//UpgradeSpiFlashBlockLen
+#define TCFG_UPGRADE_DATALEN_OFFSET		TCFG_UPGRADE_BLOCKLEN_OFFSET + TCFG_UPGRADE_BLOCKLEN_LENGTH	//0x08080E1A
+#define TCFG_UPGRADE_DATALEN_LENGTH		2												//UpgradeSpiFlashDataLen
+/************************************************************** End **************************************************************/
+
+
+
 #define FLASH_APP_OFFSET    0x08002000
 #define FLASH_APP_SIZE      128*1024//0x100000
 #define FLASH_APP0_OFFSET   FLASH_APP_OFFSET
@@ -96,9 +129,10 @@
 #define TCFG_FLAGTYPE_MAGAlGORITHM	1
 #define TCFG_FLAGTYPE_SECU		2
 
-#define TCFG_ENV_BOOTMODE_TOUPDATE		1
-#define TCFG_ENV_BOOTMODE_NORMAL		2
-#define TCFG_ENV_BOOTMODE_UPDATING		3
+#define TCFG_ENV_BOOTMODE_TOUPDATE			1
+#define TCFG_ENV_BOOTMODE_NORMAL			2
+#define TCFG_ENV_BOOTMODE_UPDATING			3
+#define TCFG_ENV_BOOTMODE_SPIFLASH_UPGRADE	4
 
 
 #define SYSTEM_ENV_FLAG     0x53454E56
@@ -191,6 +225,11 @@ void tcfg_SetBootCount(uint8_t count);
 uint32_t tcfg_GetFactoryBrand(void);
 
 uint32_t tcfg_GetBrandCode(void);
+
+uint32_t tcfg_GetUpgradeBaseAddr(void);
+uint16_t tcfg_GetUpgradeBlockNum(void);
+uint16_t tcfg_GetUpgradeBlockLen(void);
+uint16_t tcfg_GetUpgradeDataLen(void);
 
 void tcfg_SetBrandCode(uint32_t brand);
 
