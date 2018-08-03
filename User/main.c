@@ -291,9 +291,6 @@ void programUpdateSpiFlash(u32 SpiReadAddr, u32 StmWriteAddr, u32 SpiFlashBlock)
 	SpiFlashBlockAll = SpiFlashBlock;
 	FifoRemainderLen = 0;
 	
-	GD25Q_SPIFLASH_Init();
-	GD25Q_SPIFLASH_ReadDeviceID();
-	
 	Fifo_init(&UpdateFifoStruct, sizeof(UpdateFifoBuffer), (u8*)UpdateFifoBuffer);
 	
 	while ((SpiFlashBlock != 0) || (Fifo_status(&UpdateFifoStruct) >= STMFLASH_ONCE_WRITELEN)) {
@@ -331,10 +328,6 @@ void programUpdateSpiFlash(u32 SpiReadAddr, u32 StmWriteAddr, u32 SpiFlashBlock)
 	}
 }
 /********************************************************************************************************/
-//#define	DEVICE_DEBUG
-#ifdef	DEVICE_DEBUG
-void DeBugMain(void);
-#endif
 /**********************************************************************************************************
  @Function			int main(void)
  @Description			Main
@@ -364,6 +357,8 @@ int main(void)
 //	RTC_Init();														//RTC初始化
 													
 	tmesh_rf_init();	// 根据mac地址最后一位确定工作信道,错开信道,可以两个设备同时升级.
+	GD25Q_SPIFLASH_WakeUp();
+	GD25Q_SPIFLASH_Init();
 	app_offset = APP_LOWEST_ADDRESS;										//0x08005000;  省去6KB flash
 	
 #if SN_WRITE
@@ -403,7 +398,6 @@ int main(void)
 	trf_do_rfpintf(printfbuf);
 	__NOP();
 	
-	
 	if(i > 7) // fail to boot app several times
 	{
 		if(i%2 == 0)
@@ -414,26 +408,6 @@ int main(void)
 			i = 7;
 	}
 	tcfg_SetBootCount(i+1);
-	
-#ifdef	DEVICE_DEBUG
-	/* Debug Test */
-	DeBugMain();
-#endif
-	
-#ifdef	DEVICE_DEBUG
-	GD25Q_SPIFLASH_Init();
-	GD25Q_SPIFLASH_ReadDeviceID();
-	GD25Q_SPIFLASH_EraseChip();
-	trf_do_rfpintf("EraseChip");
-	for (int i = 0; i < 150; i++) {
-		GD25Q_SPIFLASH_Init();
-		STMFLASH_ReadBuffer(APP_LOWEST_ADDRESS + i * 500, (u8*)UpdateFifoBuffer, 500);
-		GD25Q_SPIFLASH_WriteBuffer((u8*)UpdateFifoBuffer, GD25Q80_PAGE_ADDRESS(0) + i * 512, 500);
-		Delay_MS(1);
-		IWDG_Feed();
-		trf_do_rfpintf(".");
-	}
-#endif
 	
 //	g_bootmode = TCFG_ENV_BOOTMODE_SPIFLASH_UPGRADE;
 	
@@ -627,13 +601,16 @@ start:
 		}
 		else if (g_bootmode == TCFG_ENV_BOOTMODE_SPIFLASH_UPGRADE)
 		{
-			UpgradeSpiFlashBaseAddr = tcfg_GetUpgradeBaseAddr();							//SPI Flash App Base Address
-			UpgradeBlockNum = tcfg_GetUpgradeBlockNum();									//SPI Flash App Block Num
-			UpgradeBlockLen = tcfg_GetUpgradeBlockLen();									//SPI Flash Block Length
-			UpgradeDataLen = tcfg_GetUpgradeDataLen();									//SPI Flash Block Effective Data Length
-			
-			programUpdateSpiFlash(UpgradeSpiFlashBaseAddr, app_offset, UpgradeBlockNum);
-			
+			GD25Q_SPIFLASH_Init();
+			GD25Q_SPIFLASH_WakeUp();
+			if (GD25Q_SPIFLASH_GetByte(APP1_INFO_UPGRADE_STATUS_OFFSET) == 0x55) {
+				UpgradeSpiFlashBaseAddr = GD25Q_SPIFLASH_GetWord(APP1_INFO_UPGRADE_BASEADDR_OFFSET);			//SPI Flash App Base Address
+				UpgradeBlockNum = GD25Q_SPIFLASH_GetHalfWord(APP1_INFO_UPGRADE_BLOCKNUM_OFFSET);			//SPI Flash App Block Num
+				UpgradeBlockLen = GD25Q_SPIFLASH_GetHalfWord(APP1_INFO_UPGRADE_BLOCKLEN_OFFSET);			//SPI Flash Block Length
+				UpgradeDataLen = GD25Q_SPIFLASH_GetHalfWord(APP1_INFO_UPGRADE_DATALEN_OFFSET);				//SPI Flash Block Effective Data Length
+				
+				programUpdateSpiFlash(UpgradeSpiFlashBaseAddr, app_offset, UpgradeBlockNum);
+			}
 			x_jump_to_application(app_offset);
 		}
 		else
@@ -642,71 +619,5 @@ start:
 		}
 	}
 }
-
-
-
-
-
-
-
-
-#ifdef	DEVICE_DEBUG
-unsigned char STMReadBuff[1024];
-unsigned char SPIReadBuff[1024];
-unsigned char tempprintf[20]="-------------------";
-void DeBugMain(void)
-{
-//	GD25Q_SPIFLASH_Init();
-//	GD25Q_SPIFLASH_ReadDeviceID();
-//	GD25Q_SPIFLASH_EraseChip();
-//	for (int i = 0; i < 140; i++) {
-//		STMFLASH_ReadBuffer(APP_LOWEST_ADDRESS + i * 512, STMReadBuff, 512);
-//		GD25Q_SPIFLASH_WriteBuffer(STMReadBuff, GD25Q80_PAGE_ADDRESS(0) + i * 512, 512);
-//		Delay_MS(1);
-//	}
-	
-	
-	
-//	GD25Q_SPIFLASH_Init();
-//	GD25Q_SPIFLASH_ReadDeviceID();
-//	GD25Q_SPIFLASH_EraseChip();
-//	trf_do_rfpintf("EraseChip");
-//	for (int i = 0; i < 144; i++) {
-//		GD25Q_SPIFLASH_Init();
-//		STMFLASH_ReadBuffer(APP_LOWEST_ADDRESS + i * 500, (u8*)UpdateFifoBuffer, 500);
-//		GD25Q_SPIFLASH_WriteBuffer((u8*)UpdateFifoBuffer, GD25Q80_PAGE_ADDRESS(0) + i * 512, 500);
-//		Delay_MS(1);
-//		IWDG_Feed();
-//		trf_do_rfpintf(".");
-//	}
-	
-	
-	
-	
-//	GD25Q_SPIFLASH_Init();
-//	GD25Q_SPIFLASH_ReadDeviceID();
-//	for (int i = 0; i < 560; i++) {
-//		GD25Q_SPIFLASH_Init();
-//		GD25Q_SPIFLASH_ReadBuffer(SPIReadBuff, GD25Q80_PAGE_ADDRESS(0) + i * 128, 128);
-//		xm_iap_program(APP_LOWEST_ADDRESS, i * 128, 128, SPIReadBuff);
-//		
-//		tempprintf[11] = 0x30+ i/560;
-//		tempprintf[12] = 0x30+ i*10/560%10;
-//		tempprintf[13] = 0x30+ i*100/560%10;
-//		trf_do_rfpintf((char*)tempprintf);
-//		
-//		IWDG_Feed();
-//	}
-	
-	
-	
-	
-//	programUpdateSpiFlash(GD25Q80_PAGE_ADDRESS(0), APP_LOWEST_ADDRESS, 144);
-	
-	x_jump_to_application(app_offset);
-	
-	
-}
-#endif
 
 /********************************************** END OF FLEE **********************************************/
