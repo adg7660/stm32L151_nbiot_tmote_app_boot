@@ -257,12 +257,12 @@ void trf_do_rfpintf(char* info)
 	infolen = strlen(info);
 	if(infolen > 30){
 		infolen = 30;
-	}
+	}	
+	if(TRF_OK != tmesh_rf_get_status())
+		return;
 	
 	tmesh_rf_interface_init();
 	
-	if(TRF_OK != tmesh_rf_get_status())
-		return;
 	pMsg->head.destSN = 0xffffffff;
 	pMsg->head.version = TRF_MSG_VERSION;
 	pMsg->head.type = TRF_MSG_DEBUG_INFO;

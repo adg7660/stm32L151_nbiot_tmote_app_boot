@@ -50,6 +50,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32l1xx_hal.h"
+#include "hal_iwdg.h"
 
 /** @addtogroup STM32L1xx_HAL_Driver
   * @{
@@ -312,11 +313,11 @@ __weak uint32_t HAL_GetTick(void)
   */
 __weak void HAL_Delay(__IO uint32_t Delay)
 {
-  uint32_t tickstart = 0;
-  tickstart = HAL_GetTick();
-  while((HAL_GetTick() - tickstart) < Delay)
-  {
-  }
+	uint32_t tickstart = 0;
+	tickstart = HAL_GetTick();
+	while ((HAL_GetTick() - tickstart) < Delay) {
+		
+	}
 }
 
 /**

@@ -264,6 +264,7 @@ void tmesh_rf_ISR(void)
 	uint8_t s_numOfRecvBytes = 0;	 //ramining number of receive data
 	//uint8_t *p_recvlong;
 	uint8_t tmp;
+	uint8_t framelen;
 	uint8_t* g_Recvlong = mrfiIncomingPacket.frame;
 	
 	tmp = bRadio_Check();
@@ -294,6 +295,7 @@ void tmesh_rf_ISR(void)
 		}
 		g_Wait_enable = NO_WAIT;
 		
+		framelen = g_Recvlong[0] - MMESH_CHECKSUM_SIZE; // 这个 2  又是什么鬼?	checksumsize
 		current_num = 0;
 		g_LT_int = 0;
 

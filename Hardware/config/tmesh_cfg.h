@@ -6,6 +6,10 @@
 #include "stm32l1xx_hal.h"
 #include <stdbool.h>
 
+#define	SYSTEMCLOCKMSI					4194000
+#define	SYSTEMCLOCKHSI					32000000
+#define	SYSTEMCLOCK					SYSTEMCLOCKHSI
+
 #define APP_LOWEST_ADDRESS		0x08003800
 
 #define BOOT_VERSION	25

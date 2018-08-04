@@ -103,11 +103,11 @@ void HAL_MspDeInit(void)
 **********************************************************************************************************/
 void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim)
 {
-//	if (htim->Instance == TIM2) {
-//		__HAL_RCC_TIM2_CLK_ENABLE();										//使能TIM2时钟
-//		HAL_NVIC_SetPriority(TIM2_IRQn, 1, 0);								//设置中断优先级, 强占优先级1, 次优先级0
-//		HAL_NVIC_EnableIRQ(TIM2_IRQn);									//开启TIM2中断
-//	}
+	if (htim->Instance == TIM2) {
+		__HAL_RCC_TIM2_CLK_ENABLE();										//使能TIM2时钟
+		HAL_NVIC_SetPriority(TIM2_IRQn, 1, 0);								//设置中断优先级, 强占优先级1, 次优先级0
+		HAL_NVIC_EnableIRQ(TIM2_IRQn);									//开启TIM2中断
+	}
 }
 
 /**********************************************************************************************************
@@ -119,10 +119,10 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim)
 **********************************************************************************************************/
 void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef *htim)
 {
-//	if (htim->Instance == TIM2) {
-//		__HAL_RCC_TIM2_CLK_DISABLE();										//失能TIM2时钟
-//		HAL_NVIC_DisableIRQ(TIM2_IRQn);									//关闭TIM2中断
-//	}
+	if (htim->Instance == TIM2) {
+		__HAL_RCC_TIM2_CLK_DISABLE();										//失能TIM2时钟
+		HAL_NVIC_DisableIRQ(TIM2_IRQn);									//关闭TIM2中断
+	}
 }
 
 
@@ -135,36 +135,36 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef *htim)
 **********************************************************************************************************/
 void HAL_RTC_MspInit(RTC_HandleTypeDef* hrtc)
 {
-//	if (hrtc->Instance == RTC) {
-//		RCC_OscInitTypeDef RCC_OscInitStruct;
-//		RCC_PeriphCLKInitTypeDef PeriphCLKInitStruct;
-//		
-//		__HAL_RCC_PWR_CLK_ENABLE();										//使能电源时钟PWR
-//		HAL_PWR_EnableBkUpAccess();										//取消备份区域写保护
-//		
-//		RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSE;				//LSE配置
-//		RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;						//DISABLE PLL
-//		RCC_OscInitStruct.LSEState = RCC_LSE_ON;							//RTC使用LSE
-//		HAL_RCC_OscConfig(&RCC_OscInitStruct);
-//		
-//		PeriphCLKInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;			//外设为RTC
-//		PeriphCLKInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;			//RTC时钟源为LSE
-//		if(HAL_OK != HAL_RCCEx_PeriphCLKConfig(&PeriphCLKInitStruct)){
-//			RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI;				//LSE配置
-//			RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;						//DISABLE PLL
-//			RCC_OscInitStruct.LSIState = RCC_LSI_ON;							//RTC使用LSE
-//			HAL_RCC_OscConfig(&RCC_OscInitStruct);
-//			
-//			PeriphCLKInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;			//外设为RTC
-//			PeriphCLKInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;			//RTC时钟源为LSI
-//			HAL_RCCEx_PeriphCLKConfig(&PeriphCLKInitStruct);
-//		}
-//		
-//		__HAL_RCC_RTC_ENABLE();											//RTC时钟使能
-//		
-//		HAL_NVIC_SetPriority(RTC_WKUP_IRQn, 2, 0);
-//		HAL_NVIC_EnableIRQ(RTC_WKUP_IRQn);
-//	}
+	if (hrtc->Instance == RTC) {
+		RCC_OscInitTypeDef RCC_OscInitStruct;
+		RCC_PeriphCLKInitTypeDef PeriphCLKInitStruct;
+		
+		__HAL_RCC_PWR_CLK_ENABLE();										//使能电源时钟PWR
+		HAL_PWR_EnableBkUpAccess();										//取消备份区域写保护
+		
+		RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSE;				//LSE配置
+		RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;						//DISABLE PLL
+		RCC_OscInitStruct.LSEState = RCC_LSE_ON;							//RTC使用LSE
+		HAL_RCC_OscConfig(&RCC_OscInitStruct);
+		
+		PeriphCLKInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;			//外设为RTC
+		PeriphCLKInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;			//RTC时钟源为LSE
+		if(HAL_OK != HAL_RCCEx_PeriphCLKConfig(&PeriphCLKInitStruct)){
+			RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI;				//LSE配置
+			RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;						//DISABLE PLL
+			RCC_OscInitStruct.LSIState = RCC_LSI_ON;							//RTC使用LSE
+			HAL_RCC_OscConfig(&RCC_OscInitStruct);
+			
+			PeriphCLKInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;			//外设为RTC
+			PeriphCLKInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;			//RTC时钟源为LSI
+			HAL_RCCEx_PeriphCLKConfig(&PeriphCLKInitStruct);
+		}
+		
+		__HAL_RCC_RTC_ENABLE();											//RTC时钟使能
+		
+		HAL_NVIC_SetPriority(RTC_WKUP_IRQn, 2, 0);
+		HAL_NVIC_EnableIRQ(RTC_WKUP_IRQn);
+	}
 }
 
 /**********************************************************************************************************
@@ -176,11 +176,11 @@ void HAL_RTC_MspInit(RTC_HandleTypeDef* hrtc)
 **********************************************************************************************************/
 void HAL_RTC_MspDeInit(RTC_HandleTypeDef* hrtc)
 {
-//	if (hrtc->Instance == RTC) {
-//		__HAL_RCC_PWR_CLK_DISABLE();										//失能电源时钟PWR
-//		__HAL_RCC_RTC_DISABLE();											//RTC时钟失能
-//		HAL_NVIC_DisableIRQ(RTC_WKUP_IRQn);
-//	}
+	if (hrtc->Instance == RTC) {
+		__HAL_RCC_PWR_CLK_DISABLE();										//失能电源时钟PWR
+		__HAL_RCC_RTC_DISABLE();											//RTC时钟失能
+		HAL_NVIC_DisableIRQ(RTC_WKUP_IRQn);
+	}
 }
 
 

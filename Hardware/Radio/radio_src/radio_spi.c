@@ -11,8 +11,9 @@
 uint8_t bSpi_ReadWriteSpi1(uint8_t biDataIn)
 {
 	uint8_t bValue = 0;
+	uint8_t rc;
 
-	HAL_SPI_TransmitReceive(&SpiHandle, &biDataIn, &bValue, 1, 100);	
+	rc = HAL_SPI_TransmitReceive(&SpiHandle, &biDataIn, &bValue, 1, 100);	
 
 	return bValue;
 }

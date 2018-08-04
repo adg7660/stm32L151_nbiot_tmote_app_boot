@@ -357,8 +357,6 @@ int main(void)
 //	RTC_Init();														//RTC初始化
 													
 	tmesh_rf_init();	// 根据mac地址最后一位确定工作信道,错开信道,可以两个设备同时升级.
-	GD25Q_SPIFLASH_WakeUp();
-	GD25Q_SPIFLASH_Init();
 	app_offset = APP_LOWEST_ADDRESS;										//0x08005000;  省去6KB flash
 	
 #if SN_WRITE
@@ -422,6 +420,7 @@ int main(void)
 		goto start;
 	}
 	
+	tmesh_rf_init();
 	upgrad_state = NO_APPDOWNLOAD;
 	*(int32_t*)subsn = tnet_utility_get_mac_sn();
 
@@ -601,6 +600,7 @@ start:
 		}
 		else if (g_bootmode == TCFG_ENV_BOOTMODE_SPIFLASH_UPGRADE)
 		{
+			HAL_NVIC_DisableIRQ(RF_IRQn);
 			GD25Q_SPIFLASH_Init();
 			GD25Q_SPIFLASH_WakeUp();
 			if (GD25Q_SPIFLASH_GetByte(APP1_INFO_UPGRADE_STATUS_OFFSET) == 0x55) {
@@ -611,6 +611,7 @@ start:
 				
 				programUpdateSpiFlash(UpgradeSpiFlashBaseAddr, app_offset, UpgradeBlockNum);
 			}
+			Beep_OUT(20, 30);
 			x_jump_to_application(app_offset);
 		}
 		else

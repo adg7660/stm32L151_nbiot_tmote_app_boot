@@ -426,7 +426,6 @@ void tcfg_SetSubSN(uint32_t subsn)
 	return;
 }
 
-
 uint8_t tcfg_ReadRfChannel(void)
 {
 	return TFLASH_ReadWord(EEPROM_CONFIG_OFFSET + TCFG_RFCHANNEL_OFFSET);

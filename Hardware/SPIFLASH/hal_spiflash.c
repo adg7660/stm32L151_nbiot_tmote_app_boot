@@ -17,10 +17,7 @@
 #include "hal_spiflash.h"
 #include "delay.h"
 #include "usart.h"
-
-#define	SYSTEMCLOCKMSI					4194000
-#define	SYSTEMCLOCKHSI					32000000
-#define	SYSTEMCLOCK					SYSTEMCLOCKHSI									//系统时钟
+#include "tmesh_cfg.h"
 
 SPI_HandleTypeDef GD25Q_SPIFLASH_Handler;
 
@@ -530,8 +527,6 @@ void GD25Q_SPIFLASH_WriteBuffer(u8* pBuffer, u32 WriteAddr, u16 NumByteToWrite)
 			else pagereMain = NumByteToWrite;
 		}
 	}
-	
-	Delay_MS(10);
 }
 
 /**********************************************************************************************************

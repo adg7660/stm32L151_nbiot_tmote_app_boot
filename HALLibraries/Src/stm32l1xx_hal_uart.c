@@ -1835,7 +1835,6 @@ static HAL_StatusTypeDef UART_Receive_IT(UART_HandleTypeDef *huart)
 
     if(--huart->RxXferCount == 0)
     {
-#if 0
       __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);
 
       /* Check if a transmit process is ongoing or not */
@@ -1853,7 +1852,6 @@ static HAL_StatusTypeDef UART_Receive_IT(UART_HandleTypeDef *huart)
 
         huart->State = HAL_UART_STATE_READY;
       }
-#endif
       HAL_UART_RxCpltCallback(huart);
 
       return HAL_OK;

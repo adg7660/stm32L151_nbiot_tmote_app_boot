@@ -97,10 +97,10 @@ U8 radio_comm_GetResp(U8 byteCount, U8* pData)
  */
 void radio_comm_SendCmd(U8 byteCount, U8* pData)
 {
-	char count=10;
+	char rc,count=10;
     while (!ctsWentHigh)
     {
-        radio_comm_PollCTS();
+        rc = radio_comm_PollCTS();
 		count--;
 		if(count == 0)
 			break;
@@ -121,12 +121,12 @@ void radio_comm_SendCmd(U8 byteCount, U8* pData)
  */
 void radio_comm_ReadData(uint8_t cmd, uint8_t pollCts, uint8_t byteCount, uint8_t* pData)
 {
-	char count=10;
+	char rc,count=10;
 	if (pollCts)
 	{
 		while (!ctsWentHigh)
 		{
-			radio_comm_PollCTS();
+			rc = radio_comm_PollCTS();
 			count--;
 			if(count == 0)
 				break;
@@ -152,12 +152,12 @@ void radio_comm_ReadData(uint8_t cmd, uint8_t pollCts, uint8_t byteCount, uint8_
  */
 void radio_comm_WriteData(uint8_t cmd, uint8_t pollCts, uint8_t byteCount, uint8_t* pData)
 {
-	char count=10;
+	char rc,count=10;
 	if (pollCts)
 	{
 		while (!ctsWentHigh)
 		{
-			radio_comm_PollCTS();
+			rc = radio_comm_PollCTS();
 			count--;
 			if(count == 0)
 				break;
