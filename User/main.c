@@ -262,6 +262,8 @@ __IO unsigned char UpdateFifoBuffer[UPDATE_BUFFER_LEN];
 __IO unsigned char UpdateSPIFlashRead[UPDATE_STACK_BUFFER_LEN];
 __IO unsigned char UpdateSTMFlashWrite[UPDATE_STACK_BUFFER_LEN];
 
+__IO unsigned char GD25Q80SectorBuffer[4096];
+
 __IO u32 SpiFlashblockIndex = 0;
 __IO u32 StmFlashblockIndex = 0;
 __IO u32 SpiFlashBlockAll = 0;
@@ -343,7 +345,7 @@ extern uint8_t Join_state;
 int main(void)
 {
 	int i,j;
-	char printfbuf[30]="Boot -----mode---count------";
+	char printfbuf[30]="Boot----mode---count----nor---";
 	HAL_Init();														//初始化HAL库
 	Stm32_Clock_Init(RCC_PLLMUL_6, RCC_PLLDIV_3);							//设置时钟32Mhz
 
@@ -355,7 +357,9 @@ int main(void)
 	Delay_Init(32);													//初始化延时
 	QMC5883L_Discharge();
 //	RTC_Init();														//RTC初始化
-													
+	
+	GD25Q_SPIFLASH_Init();
+	
 	tmesh_rf_init();	// 根据mac地址最后一位确定工作信道,错开信道,可以两个设备同时升级.
 	app_offset = APP_LOWEST_ADDRESS;										//0x08005000;  省去6KB flash
 	
@@ -388,11 +392,12 @@ int main(void)
 	Beep_OUT(2,20);
 	Delay_MS(100);										//di~didi~di~didi
 //	sprintf(printfbuf,"bootmode=%d,bootcnt=%d",g_bootmode,i);
-	printfbuf[15]=0x30+g_bootmode;
-	printfbuf[24]=0x30+i/10;
-	printfbuf[25]=0x30+i%10;
-	printfbuf[6] =0x30+((BOOT_VERSION/10));
-	printfbuf[7] =0x30+(BOOT_VERSION%10);
+	printfbuf[13]=0x30+g_bootmode;
+	printfbuf[21]=0x30+i/10;
+	printfbuf[22]=0x30+i%10;
+	printfbuf[5] =0x30+((BOOT_VERSION/10));
+	printfbuf[6] =0x30+(BOOT_VERSION%10);
+	printfbuf[28] = 0x30+(GD25Q_SPIFLASH_Get_Status()?0:1);
 	trf_do_rfpintf(printfbuf);
 	__NOP();
 	
@@ -600,18 +605,39 @@ start:
 		}
 		else if (g_bootmode == TCFG_ENV_BOOTMODE_SPIFLASH_UPGRADE)
 		{
-			HAL_NVIC_DisableIRQ(RF_IRQn);
-			GD25Q_SPIFLASH_Init();
-			GD25Q_SPIFLASH_WakeUp();
-			if (GD25Q_SPIFLASH_GetByte(APP1_INFO_UPGRADE_STATUS_OFFSET) == 0x55) {
-				UpgradeSpiFlashBaseAddr = GD25Q_SPIFLASH_GetWord(APP1_INFO_UPGRADE_BASEADDR_OFFSET);			//SPI Flash App Base Address
-				UpgradeBlockNum = GD25Q_SPIFLASH_GetHalfWord(APP1_INFO_UPGRADE_BLOCKNUM_OFFSET);			//SPI Flash App Block Num
-				UpgradeBlockLen = GD25Q_SPIFLASH_GetHalfWord(APP1_INFO_UPGRADE_BLOCKLEN_OFFSET);			//SPI Flash Block Length
-				UpgradeDataLen = GD25Q_SPIFLASH_GetHalfWord(APP1_INFO_UPGRADE_DATALEN_OFFSET);				//SPI Flash Block Effective Data Length
-				
-				programUpdateSpiFlash(UpgradeSpiFlashBaseAddr, app_offset, UpgradeBlockNum);
+			if (GD25Q_SPIFLASH_Get_Status() != GD25Q80CSIG_ERROR) {
+				HAL_NVIC_DisableIRQ(RF_IRQn);
+				GD25Q_SPIFLASH_Init();
+				GD25Q_SPIFLASH_WakeUp();
+				if (GD25Q_SPIFLASH_GetByte(APP1_INFO_UPGRADE_STATUS_OFFSET) == 0x55) {
+					UpgradeSpiFlashBaseAddr = GD25Q_SPIFLASH_GetWord(APP1_INFO_UPGRADE_BASEADDR_OFFSET);		//SPI Flash App Base Address
+					UpgradeBlockNum = GD25Q_SPIFLASH_GetHalfWord(APP1_INFO_UPGRADE_BLOCKNUM_OFFSET);		//SPI Flash App Block Num
+					UpgradeBlockLen = GD25Q_SPIFLASH_GetHalfWord(APP1_INFO_UPGRADE_BLOCKLEN_OFFSET);		//SPI Flash Block Length
+					UpgradeDataLen = GD25Q_SPIFLASH_GetHalfWord(APP1_INFO_UPGRADE_DATALEN_OFFSET);			//SPI Flash Block Effective Data Length
+					
+					programUpdateSpiFlash(UpgradeSpiFlashBaseAddr, app_offset, UpgradeBlockNum);
+					GD25Q_SPIFLASH_Init();
+					GD25Q_SPIFLASH_ReadBuffer((u8*)GD25Q80SectorBuffer, APP1_INFORMATION_ADDR, 4096);
+					GD25Q80SectorBuffer[0] = 0x50;
+					GD25Q_SPIFLASH_EraseSector(APP1_INFORMATION_ADDR);
+					GD25Q_SPIFLASH_WriteBuffer((u8*)GD25Q80SectorBuffer, APP1_INFORMATION_ADDR, 4096);
+				}
+				else if (GD25Q_SPIFLASH_GetByte(APP2_INFO_UPGRADE_STATUS_OFFSET) == 0x55) {
+					UpgradeSpiFlashBaseAddr = GD25Q_SPIFLASH_GetWord(APP2_INFO_UPGRADE_BASEADDR_OFFSET);		//SPI Flash App Base Address
+					UpgradeBlockNum = GD25Q_SPIFLASH_GetHalfWord(APP2_INFO_UPGRADE_BLOCKNUM_OFFSET);		//SPI Flash App Block Num
+					UpgradeBlockLen = GD25Q_SPIFLASH_GetHalfWord(APP2_INFO_UPGRADE_BLOCKLEN_OFFSET);		//SPI Flash Block Length
+					UpgradeDataLen = GD25Q_SPIFLASH_GetHalfWord(APP2_INFO_UPGRADE_DATALEN_OFFSET);			//SPI Flash Block Effective Data Length
+					
+					programUpdateSpiFlash(UpgradeSpiFlashBaseAddr, app_offset, UpgradeBlockNum);
+					GD25Q_SPIFLASH_Init();
+					GD25Q_SPIFLASH_ReadBuffer((u8*)GD25Q80SectorBuffer, APP2_INFORMATION_ADDR, 4096);
+					GD25Q80SectorBuffer[0] = 0x50;
+					GD25Q_SPIFLASH_EraseSector(APP2_INFORMATION_ADDR);
+					GD25Q_SPIFLASH_WriteBuffer((u8*)GD25Q80SectorBuffer, APP2_INFORMATION_ADDR, 4096);
+				}
+				Beep_OUT(20, 30);
 			}
-			Beep_OUT(20, 30);
+			
 			x_jump_to_application(app_offset);
 		}
 		else
