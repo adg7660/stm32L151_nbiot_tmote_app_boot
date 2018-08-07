@@ -262,8 +262,6 @@ __IO unsigned char UpdateFifoBuffer[UPDATE_BUFFER_LEN];
 __IO unsigned char UpdateSPIFlashRead[UPDATE_STACK_BUFFER_LEN];
 __IO unsigned char UpdateSTMFlashWrite[UPDATE_STACK_BUFFER_LEN];
 
-__IO unsigned char GD25Q80SectorBuffer[4096];
-
 __IO u32 SpiFlashblockIndex = 0;
 __IO u32 StmFlashblockIndex = 0;
 __IO u32 SpiFlashBlockAll = 0;
@@ -359,6 +357,7 @@ int main(void)
 //	RTC_Init();														//RTC初始化
 	
 	GD25Q_SPIFLASH_Init();
+	GD25Q_SPIFLASH_PowerDown();
 	
 	tmesh_rf_init();	// 根据mac地址最后一位确定工作信道,错开信道,可以两个设备同时升级.
 	app_offset = APP_LOWEST_ADDRESS;										//0x08005000;  省去6KB flash
@@ -600,15 +599,14 @@ start:
 				if(Sys_GetSecond()%10 == 0){
 					Beep_OUT(1,20);
 				}
-
 			}
 		}
 		else if (g_bootmode == TCFG_ENV_BOOTMODE_SPIFLASH_UPGRADE)
 		{
 			if (GD25Q_SPIFLASH_Get_Status() != GD25Q80CSIG_ERROR) {
 				HAL_NVIC_DisableIRQ(RF_IRQn);
-				GD25Q_SPIFLASH_Init();
 				GD25Q_SPIFLASH_WakeUp();
+				GD25Q_SPIFLASH_Init();
 				if (GD25Q_SPIFLASH_GetByte(APP1_INFO_UPGRADE_STATUS_OFFSET) == 0x55) {
 					UpgradeSpiFlashBaseAddr = GD25Q_SPIFLASH_GetWord(APP1_INFO_UPGRADE_BASEADDR_OFFSET);		//SPI Flash App Base Address
 					UpgradeBlockNum = GD25Q_SPIFLASH_GetHalfWord(APP1_INFO_UPGRADE_BLOCKNUM_OFFSET);		//SPI Flash App Block Num
@@ -616,11 +614,6 @@ start:
 					UpgradeDataLen = GD25Q_SPIFLASH_GetHalfWord(APP1_INFO_UPGRADE_DATALEN_OFFSET);			//SPI Flash Block Effective Data Length
 					
 					programUpdateSpiFlash(UpgradeSpiFlashBaseAddr, app_offset, UpgradeBlockNum);
-					GD25Q_SPIFLASH_Init();
-					GD25Q_SPIFLASH_ReadBuffer((u8*)GD25Q80SectorBuffer, APP1_INFORMATION_ADDR, 4096);
-					GD25Q80SectorBuffer[0] = 0x50;
-					GD25Q_SPIFLASH_EraseSector(APP1_INFORMATION_ADDR);
-					GD25Q_SPIFLASH_WriteBuffer((u8*)GD25Q80SectorBuffer, APP1_INFORMATION_ADDR, 4096);
 				}
 				else if (GD25Q_SPIFLASH_GetByte(APP2_INFO_UPGRADE_STATUS_OFFSET) == 0x55) {
 					UpgradeSpiFlashBaseAddr = GD25Q_SPIFLASH_GetWord(APP2_INFO_UPGRADE_BASEADDR_OFFSET);		//SPI Flash App Base Address
@@ -629,11 +622,6 @@ start:
 					UpgradeDataLen = GD25Q_SPIFLASH_GetHalfWord(APP2_INFO_UPGRADE_DATALEN_OFFSET);			//SPI Flash Block Effective Data Length
 					
 					programUpdateSpiFlash(UpgradeSpiFlashBaseAddr, app_offset, UpgradeBlockNum);
-					GD25Q_SPIFLASH_Init();
-					GD25Q_SPIFLASH_ReadBuffer((u8*)GD25Q80SectorBuffer, APP2_INFORMATION_ADDR, 4096);
-					GD25Q80SectorBuffer[0] = 0x50;
-					GD25Q_SPIFLASH_EraseSector(APP2_INFORMATION_ADDR);
-					GD25Q_SPIFLASH_WriteBuffer((u8*)GD25Q80SectorBuffer, APP2_INFORMATION_ADDR, 4096);
 				}
 				Beep_OUT(20, 30);
 			}

@@ -299,6 +299,10 @@ void GD25Q_SPIFLASH_WaitForBusy(void)
 **********************************************************************************************************/
 void GD25Q_SPIFLASH_PowerDown(void)
 {
+	if (GD25Q80CSIG_OK != GD25Q_SPIFLASH_Get_Status()) {
+		return;
+	}
+	
 	/* Select the FLASH: Chip Select low */
 	GD25Q_FLASH_SPIx_NSS_ENABLE();
 	
