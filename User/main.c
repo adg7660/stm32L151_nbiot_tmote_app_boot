@@ -604,9 +604,20 @@ start:
 		else if (g_bootmode == TCFG_ENV_BOOTMODE_SPIFLASH_UPGRADE)
 		{
 			if (GD25Q_SPIFLASH_Get_Status() != GD25Q80CSIG_ERROR) {
+				
 				HAL_NVIC_DisableIRQ(RF_IRQn);
 				GD25Q_SPIFLASH_WakeUp();
 				GD25Q_SPIFLASH_Init();
+				
+				if (GD25Q_SPIFLASH_GetByte(APP1_INFO_UPGRADE_STATUS_OFFSET) == 0x55) {
+					if (tcfg_GetBootCount() > 3) {
+						GD25Q_SPIFLASH_EraseBlock(APP1_BASE_ADDR + 0 * GD25Q80_BLOCK_BYTE_SIZE);
+						GD25Q_SPIFLASH_EraseBlock(APP1_BASE_ADDR + 1 * GD25Q80_BLOCK_BYTE_SIZE);
+						GD25Q_SPIFLASH_EraseBlock(APP1_BASE_ADDR + 2 * GD25Q80_BLOCK_BYTE_SIZE);
+						GD25Q_SPIFLASH_EraseBlock(APP1_BASE_ADDR + 3 * GD25Q80_BLOCK_BYTE_SIZE);
+					}
+				}
+				
 				if (GD25Q_SPIFLASH_GetByte(APP1_INFO_UPGRADE_STATUS_OFFSET) == 0x55) {
 					UpgradeSpiFlashBaseAddr = GD25Q_SPIFLASH_GetWord(APP1_INFO_UPGRADE_BASEADDR_OFFSET);		//SPI Flash App Base Address
 					UpgradeBlockNum = GD25Q_SPIFLASH_GetHalfWord(APP1_INFO_UPGRADE_BLOCKNUM_OFFSET);		//SPI Flash App Block Num
