@@ -136,6 +136,21 @@ void Radar_OFF(void)	//
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, GPIO_PIN_RESET);
 }
 /**********************************************************************************************************
+ @Function			beep_on
+ @Description			make the beep work
+ @Input				xms  how many ms to beep
+ @Return				void
+**********************************************************************************************************/
+void beep_on(uint16_t xms)
+{
+	while(xms--){
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_SET);
+		Delay_US(130);
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_RESET);
+		Delay_US(870);
+	}
+}
+/**********************************************************************************************************
  @Function			Beep_OUT
  @Description			make the beep work
  @Input				times  how many times to beep
@@ -157,8 +172,9 @@ void Beep_OUT(uint8_t times,uint8_t length)	//
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);								//≥ı ºªØGPIO
 	
 	while(times--){
-		BEEPPOWER(ON);
-		Delay_MS(length); //wait for response
+//		BEEPPOWER(ON);
+//		Delay_MS(length); //wait for response
+		beep_on(length);
 		BEEPPOWER(OFF);
 		Delay_MS(100-length); //wait for response		
 	}

@@ -144,12 +144,12 @@ char tmesh_rf_init(void)
 		CHANNEL1 = 36;
 	else if(4 == tcfg_ReadRfChannel())
 		CHANNEL1 = 4;
-	else if(6 == tcfg_ReadRfChannel())
-		CHANNEL1 = 6;
-	else if(16 == tcfg_ReadRfChannel())
-		CHANNEL1 = 16;
-	else if(26 == tcfg_ReadRfChannel())
-		CHANNEL1 = 26;
+//	else if(6 == tcfg_ReadRfChannel())
+//		CHANNEL1 = 6;
+//	else if(16 == tcfg_ReadRfChannel())
+//		CHANNEL1 = 16;
+//	else if(26 == tcfg_ReadRfChannel())
+//		CHANNEL1 = 26;
 	else
 		CHANNEL1 = 36;
 	// step 0 :
