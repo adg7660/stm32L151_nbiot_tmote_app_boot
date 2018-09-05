@@ -145,9 +145,9 @@ void beep_on(uint16_t xms)
 {
 	while(xms--){
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_SET);
-		Delay_US(130);
+		Delay_US(230);
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_RESET);
-		Delay_US(870);
+		Delay_US(230);
 	}
 }
 /**********************************************************************************************************
@@ -174,7 +174,7 @@ void Beep_OUT(uint8_t times,uint8_t length)	//
 	while(times--){
 //		BEEPPOWER(ON);
 //		Delay_MS(length); //wait for response
-		beep_on(length);
+		beep_on(length*5);
 		BEEPPOWER(OFF);
 		Delay_MS(100-length); //wait for response		
 	}

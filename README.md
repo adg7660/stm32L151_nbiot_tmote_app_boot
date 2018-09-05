@@ -1,6 +1,10 @@
 # stm32L151_nbiot_tmote_app_boot
 movebroad Knagkang
 
+* 2018-9-5
+	* 0.27 qmc加热电阻上电拉低。
+	* 蜂鸣器调整最大频率。
+	* 增加对GD25Q40B SPI FLASH的支持。
 * 2018-8-11
 	* 0.26 channel只有36和4两种
 * 2018-8-3

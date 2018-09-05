@@ -74,6 +74,13 @@ void HAL_MspInit(void)
 	GPIO_InitStructure.Pin = GPIOH_PIN;
 	HAL_GPIO_Init(GPIOH, &GPIO_InitStructure);
 	
+	GPIO_InitStructure.Pin = GPIO_PIN_9;
+	GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStructure.Pull = GPIO_PULLDOWN;
+	GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);
+	
 	__HAL_RCC_GPIOA_CLK_DISABLE();
 	__HAL_RCC_GPIOB_CLK_DISABLE();
 	__HAL_RCC_GPIOC_CLK_DISABLE();
