@@ -426,6 +426,7 @@ int main(void)
 			i = 7;
 	}
 	tcfg_SetBootCount(i+1);
+	IWDG_Feed();														//Î¹¹·
 	
 //	g_bootmode = TCFG_ENV_BOOTMODE_SPIFLASH_UPGRADE;
 	
@@ -440,6 +441,7 @@ int main(void)
 		goto start;
 	}
 	
+	IWDG_Feed();														//Î¹¹·
 	tmesh_rf_init();
 	upgrad_state = NO_APPDOWNLOAD;
 	*(int32_t*)subsn = tnet_utility_get_mac_sn();

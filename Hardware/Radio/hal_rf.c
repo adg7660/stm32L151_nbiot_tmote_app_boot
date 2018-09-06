@@ -18,6 +18,7 @@
 #endif
 #include "tmesh_rf_app.h"
 #include "tmesh_cfg.h"
+#include "delay.h"
 // PB4  :SDN	,used to reset the mcu
 // PB10:nIRQ
 // PA15:SPI1_NSS
@@ -139,7 +140,9 @@ char tmesh_rf_get_status(void)
  @Return		 void
 **********************************************************************************************************/
 char tmesh_rf_init(void)
-{	
+{
+	__IO u32 nCountTimeout = HAL_GetTick();
+	
 	if(36 == tcfg_ReadRfChannel())
 		CHANNEL1 = 36;
 	else if(4 == tcfg_ReadRfChannel())
@@ -171,7 +174,12 @@ char tmesh_rf_init(void)
 	while (SI446X_SUCCESS != si446x_configuration_init(Radio_Configuration_Data_Array))
 	{
 		vRadio_PowerUp();
+		if (HAL_GetTick() > nCountTimeout + 10000) {
+			trf_status = TRF_ERROR;
+			return TRF_ERROR;
+		}
 	}
+	
 	// step 3: Get the chip's Interrupt status/pending flags form the radio and clear flags if requested
 	si446x_get_int_status(0u, 0u, 0u);
 	// step 4: set the rf chip to rx state
