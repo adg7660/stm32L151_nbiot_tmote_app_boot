@@ -1,6 +1,8 @@
 # stm32L151_nbiot_tmote_app_boot
 movebroad Knagkang
 
+* 2018-9-8
+	* 0.28 精简flash，修复应flash过大导致boot异常。
 * 2018-9-5
 	* 0.27 qmc加热电阻上电拉低。
 	* 蜂鸣器调整最大频率。

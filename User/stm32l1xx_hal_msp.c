@@ -142,6 +142,7 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef *htim)
 **********************************************************************************************************/
 void HAL_RTC_MspInit(RTC_HandleTypeDef* hrtc)
 {
+#if 0
 	if (hrtc->Instance == RTC) {
 		RCC_OscInitTypeDef RCC_OscInitStruct;
 		RCC_PeriphCLKInitTypeDef PeriphCLKInitStruct;
@@ -172,6 +173,7 @@ void HAL_RTC_MspInit(RTC_HandleTypeDef* hrtc)
 		HAL_NVIC_SetPriority(RTC_WKUP_IRQn, 2, 0);
 		HAL_NVIC_EnableIRQ(RTC_WKUP_IRQn);
 	}
+#endif
 }
 
 /**********************************************************************************************************
@@ -183,11 +185,13 @@ void HAL_RTC_MspInit(RTC_HandleTypeDef* hrtc)
 **********************************************************************************************************/
 void HAL_RTC_MspDeInit(RTC_HandleTypeDef* hrtc)
 {
+#if 0
 	if (hrtc->Instance == RTC) {
 		__HAL_RCC_PWR_CLK_DISABLE();										//失能电源时钟PWR
 		__HAL_RCC_RTC_DISABLE();											//RTC时钟失能
 		HAL_NVIC_DisableIRQ(RTC_WKUP_IRQn);
 	}
+#endif
 }
 
 

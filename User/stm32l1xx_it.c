@@ -24,6 +24,7 @@
 #include "tmesh_misc.h"
 #include "hal_rf.h"
 
+#if 0
 /**********************************************************************************************************
  @Function			void RTC_Alarm_IRQHandler(void)
  @Description			RTC闹钟中断服务函数
@@ -154,7 +155,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		}
 	}
 }
-
+#endif
 
 /**********************************************************************************************************
  @Function			void TIM2_IRQHandler(void)
